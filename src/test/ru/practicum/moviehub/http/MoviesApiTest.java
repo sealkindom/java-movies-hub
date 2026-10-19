@@ -237,6 +237,27 @@ public class MoviesApiTest {
     }
 
     @Test
+    @DisplayName("POST /movies: Content-Type с суффиксом вместо application/json возвращает 415")
+    void postMoviesWithJsonPatchContentTypeReturnsUnsupportedMediaType() throws Exception {
+        HttpResponse<String> resp = post("{\"title\":\"Фильм\",\"year\":2010}", "application/json-patch+json");
+
+        assertEquals(415, resp.statusCode());
+        assertTrue(store.getAll().isEmpty());
+    }
+
+    @Test
+    @DisplayName("POST /movies: слишком большое тело возвращает 413")
+    void postMoviesWithTooLargeBodyReturnsPayloadTooLarge() throws Exception {
+        String title = "a".repeat(1024 * 1024 + 1);
+        HttpResponse<String> resp = postJson("{\"title\":\"" + title + "\",\"year\":2010}");
+
+        assertEquals(413, resp.statusCode());
+        assertEquals(CT_JSON, contentType(resp));
+        error(resp);
+        assertTrue(store.getAll().isEmpty());
+    }
+
+    @Test
     @DisplayName("POST /movies: некорректный JSON возвращает 400")
     void postMoviesWithInvalidJsonReturnsBadRequest() throws Exception {
         HttpResponse<String> resp = postJson("{\"title\":");

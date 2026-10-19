@@ -8,6 +8,7 @@ public enum ApiError {
     INVALID_YEAR_PARAMETER(HttpStatus.BAD_REQUEST, "Некорректный параметр запроса — 'year'"),
     INVALID_JSON(HttpStatus.BAD_REQUEST, "Некорректный JSON"),
     VALIDATION_ERROR(HttpStatus.UNPROCESSABLE_ENTITY, "Ошибка валидации"),
+    PAYLOAD_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE, "Тело запроса слишком большое"),
     UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Неподдерживаемый тип данных, ожидается application/json"),
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "Метод не поддерживается");
 

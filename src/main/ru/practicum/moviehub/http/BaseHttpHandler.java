@@ -15,6 +15,7 @@ import java.util.Optional;
 
 public abstract class BaseHttpHandler implements HttpHandler {
     private static final String CT_JSON = "application/json; charset=UTF-8";
+    private static final int MAX_BODY_SIZE = 1024 * 1024;
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
 
     protected void sendJson(HttpExchange ex, HttpStatus status, Object body) throws IOException {
@@ -35,7 +36,11 @@ public abstract class BaseHttpHandler implements HttpHandler {
     }
 
     protected <T> Optional<T> readJson(HttpExchange ex, Class<T> type) throws IOException {
-        String body = new String(ex.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        byte[] bytes = ex.getRequestBody().readNBytes(MAX_BODY_SIZE + 1);
+        if (bytes.length > MAX_BODY_SIZE) {
+            throw new PayloadTooLargeException();
+        }
+        String body = new String(bytes, StandardCharsets.UTF_8);
         try {
             return Optional.ofNullable(GSON.fromJson(body, type));
         } catch (JsonSyntaxException e) {

@@ -13,6 +13,7 @@ import java.util.Optional;
 public class MoviesHandler extends BaseHttpHandler {
     static final String MOVIES_PATH = "/movies";
 
+    private static final System.Logger LOGGER = System.getLogger(MoviesHandler.class.getName());
     private static final String JSON_MEDIA_TYPE = "application/json";
     private static final String YEAR_PARAMETER_PREFIX = "year=";
     private static final String ALLOWED_ON_COLLECTION = "GET, POST";
@@ -29,7 +30,11 @@ public class MoviesHandler extends BaseHttpHandler {
     public void handle(HttpExchange ex) throws IOException {
         try {
             route(ex);
+        } catch (PayloadTooLargeException e) {
+            sendError(ex, ApiError.PAYLOAD_TOO_LARGE);
         } catch (RuntimeException e) {
+            LOGGER.log(System.Logger.Level.ERROR,
+                    "Ошибка обработки запроса " + ex.getRequestMethod() + " " + ex.getRequestURI(), e);
             sendError(ex, ApiError.INTERNAL_ERROR);
         }
     }
@@ -139,7 +144,12 @@ public class MoviesHandler extends BaseHttpHandler {
 
     private boolean hasJsonContentType(HttpExchange ex) {
         String contentType = ex.getRequestHeaders().getFirst("Content-Type");
-        return contentType != null && contentType.toLowerCase().startsWith(JSON_MEDIA_TYPE);
+        if (contentType == null) {
+            return false;
+        }
+        int semicolon = contentType.indexOf(';');
+        String type = semicolon >= 0 ? contentType.substring(0, semicolon) : contentType;
+        return JSON_MEDIA_TYPE.equalsIgnoreCase(type.trim());
     }
 
     private Optional<Integer> parseYearParameter(String query) {
